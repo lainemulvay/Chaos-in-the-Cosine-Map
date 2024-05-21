@@ -1,0 +1,56 @@
+import numpy as np
+import ipywidgets as widgets
+from IPython.display import display, clear_output
+import matplotlib.pyplot as plt
+
+def draw_cobweb(map_func, x_0, n_iterations):
+    x = np.zeros(n_iterations)
+    y = np.zeros(n_iterations)
+    x_vals = np.linspace(0, 1, 100)
+    x[0] = x_0
+
+    # Plot the map and identity
+    plt.plot(x_vals, x_vals, color='black', linestyle='--')
+    y_vals = map_func(x_vals, r=3.5)
+    plt.plot(x_vals, y_vals, color='black', label='Map Function')
+    plt.xlabel('x_n')
+    plt.ylabel('x_n+1')
+    plt.xlim(0, 1)
+    plt.ylim(0, 1)
+    # Plot the cobweb diagram
+    plt.title('Cobweb Diagram')
+
+    # Apply the map iteratively
+    for i in range(n_iterations - 1):
+        y[i] = map_func(x[i], r=3.5)
+        x[i+1] = y[i]
+        plt.plot([x[i], y[i]], [y[i], y[i]], color='red')
+        plt.plot([y[i-1], y[i-1]], [y[i-1], y[i]], color='red')
+
+    plt.plot([x[0], x[0]], [0, x[1]], color='red')
+    plt.show()
+
+# Test the cobweb plot with a simple map
+def cos_map(x):
+    return np.cos(x)
+
+def cosine_map(x, r):
+    return (r/4) * (2 * np.cos((2*np.pi/3)*(x-0.5)) - 1)
+
+# Create interactive widgets
+x_0_slider = widgets.FloatSlider(value=0.2, min=0, max=1, step=0.01, description='x_0:')
+n_iterations_slider = widgets.IntSlider(value=20, min=1, max=100, step=1, description='n_iterations:')
+
+# Define the update function
+def update_plot(change):
+    clear_output(wait=True)  # Clear the previous output
+    display(x_0_slider, n_iterations_slider)  # Redisplay the sliders
+    draw_cobweb(cosine_map, x_0=x_0_slider.value, n_iterations=n_iterations_slider.value)
+
+# Register the update function with the sliders
+x_0_slider.observe(update_plot, 'value')
+n_iterations_slider.observe(update_plot, 'value')
+
+# Display the sliders and initial plot
+display(x_0_slider, n_iterations_slider)
+draw_cobweb(cosine_map, x_0=x_0_slider.value, n_iterations=n_iterations_slider.value)
